@@ -55,9 +55,13 @@ namespace CommentCombobulator
                     }
                     sentence.Trim();
 
-                    Regex r = new Regex(@"\s\s+");
+                    Regex whitespaceremoval = new Regex(@"\s\s+");
 
-                    sentence = r.Replace(sentence,"");
+                    sentence = whitespaceremoval.Replace(sentence,"");
+
+                    Regex alphanum = new Regex("[^a-zA-Z0-9. -]");
+                    sentence = alphanum.Replace(sentence, "");
+
 
                     output += sentence;
 
@@ -71,6 +75,9 @@ namespace CommentCombobulator
                     Console.WriteLine("Failed to parse comment :" + e.Message);//Error catching for that damn null comment at the end of every post
                 }
             }
+            Console.WriteLine();
+            Console.WriteLine();
+
             Console.WriteLine(output);
             Console.ReadKey();
         }
