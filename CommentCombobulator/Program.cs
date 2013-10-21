@@ -39,7 +39,7 @@ namespace CommentCombobulator
 
 
 
-            Post p = reddit.GetPost("http://www.reddit.com/r/AskReddit/comments/1ouw37/whats_the_weirdest_creepiest_or_most/");//Put your post url (with http://) here
+            Post p = reddit.GetPost("http://www.reddit.com/r/AskReddit/comments/1m15pa/teachers_of_reddit_what_is_the_funniest_thing/");//Put your post url (with http://) here
             Comment[] comments = p.GetComments();
 
             Console.WriteLine("Got post comments");
@@ -67,9 +67,9 @@ namespace CommentCombobulator
 
                             sentence = whitespaceremoval.Replace(sentence, "");//Apply regex to remove excess spacing inside the sentence (readability)
 
-                            Regex alphanum = new Regex("[^a-zA-Z0-9. ,-]");
+                            //Regex alphanum = new Regex("[^a-zA-Z0-9. ,-]");
 
-                            sentence = alphanum.Replace(sentence, "");//Remove crazy symbol using regex (readability)
+                            //sentence = alphanum.Replace(sentence, "");//Remove crazy symbol using regex (readability)
 
 
                             output += sentence;//Add the sentence to the output string
@@ -95,7 +95,8 @@ namespace CommentCombobulator
 
             Console.Write(output);
 
-            File.WriteAllText("out.txt", output);
+            
+            File.WriteAllText("out" + DateTime.Now.Ticks.ToString() + ".txt", output);
 
 
 
