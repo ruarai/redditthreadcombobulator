@@ -3,14 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Text.RegularExpressions;
+using System.Globalization;
+using System.IO;
 
 namespace CommentCombobulator
 {
     class Program
     {
+        
+
+
+
         static void Main(string[] args)
         {
             Console.BufferWidth = 100;//Make console wider for better reading
+            Console.SetWindowSize(Console.LargestWindowWidth / 2, Console.LargestWindowHeight / 2);
             Reddit reddit = new Reddit();
             while (reddit.User == null)//Keep trying to login until it works
             {
@@ -32,7 +39,7 @@ namespace CommentCombobulator
 
 
 
-            Post p = reddit.GetPost("http://www.reddit.com/r/AskReddit/comments/1orzia/people_who_had_an_affair_while_in_a_relationship/");//Put your post url (with http://) here
+            Post p = reddit.GetPost("http://www.reddit.com/r/AskReddit/comments/1ouw37/whats_the_weirdest_creepiest_or_most/");//Put your post url (with http://) here
             Comment[] comments = p.GetComments();
 
             Console.WriteLine("Got post comments");
@@ -44,50 +51,72 @@ namespace CommentCombobulator
             {
                 try
                 {
-                    string text = c.Body;
-                    string[] sentences = text.Split('.');
+                    string text = c.Body;//Take the text of the string from the comment
 
-                    string sentence = sentences[MaxAt(i, sentences.Length - 1)] + ".";
-
-                    if (sentence.Contains("EDIT") | sentence.Contains("[deleted]") | sentence.Contains("Edit"))
+                    if (!ContainsBlackListedWords(text))//Make sure the comment isn't a witty one liner (rudimentary)
                     {
-                        sentence = "";
+
+                        string[] sentences = text.Split('.');//Split the comment into each setence
+
+                        string sentence = sentences[i.MaxAt(sentences.Length-1)] + ".";//Take a sentence out of the sentence array
+                        if (sentence.Length > 2 )//Check if it is a good sentence
+                        {
+                            sentence.Trim();//Trim spaces from both sides of the sentence.
+
+                            Regex whitespaceremoval = new Regex(@"\s\s+");
+
+                            sentence = whitespaceremoval.Replace(sentence, "");//Apply regex to remove excess spacing inside the sentence (readability)
+
+                            Regex alphanum = new Regex("[^a-zA-Z0-9. ,-]");
+
+                            sentence = alphanum.Replace(sentence, "");//Remove crazy symbol using regex (readability)
+
+
+                            output += sentence;//Add the sentence to the output string
+
+                            i++;//Increment i to continue the paragraph
+
+                            Console.WriteLine("Parsed comment:" + i);//Log success
+                        }
                     }
-                    sentence.Trim();
-
-                    Regex whitespaceremoval = new Regex(@"\s\s+");
-
-                    sentence = whitespaceremoval.Replace(sentence,"");
-
-                    Regex alphanum = new Regex("[^a-zA-Z0-9. -]");
-                    sentence = alphanum.Replace(sentence, "");
-
-
-                    output += sentence;
-
-                    output.Trim();
-                    i++;
-
-                    Console.WriteLine("Parsed comment:" + i);
+                    else
+                    {
+                        Console.WriteLine("Failed to parse comment : Comment contained blacklisted word");
+                    }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine("Failed to parse comment :" + e.Message);//Error catching for that damn null comment at the end of every post
                 }
             }
-            Console.WriteLine();
-            Console.WriteLine();
+            Console.WriteLine();//Add spacing
+            Console.WriteLine();//""
 
-            Console.WriteLine(output);
+
+            Console.Write(output);
+
+            File.WriteAllText("out.txt", output);
+
+
+
             Console.ReadKey();
         }
-        static int MaxAt(int input, int maxlength)
+        static bool ContainsBlackListedWords(string sample)
         {
-            if(input > maxlength)
+            string[] blacklistedwords = { "jpeg", "jpg", "png", "edit", "com", "www", "gold"};//A list of words that, if found in a comment, will skip the comment from being used
+
+            
+
+            foreach (string s in blacklistedwords)
             {
-                return maxlength;
+                if (CultureInfo.CurrentCulture.CompareInfo.IndexOf(sample, s,CompareOptions.IgnoreCase) != -1)
+                {
+                    return true;
+                }
             }
-            return input;
+            return false;
+
+
         }
         public static string ReadPassword()//Stolen from the RedditSharp example
         {
